@@ -354,7 +354,7 @@ class TestWmdSimilarity(_TestSimilarityABC):
         sims = index[query]
 
         for i in range(3):
-            self.assertTrue(numpy.all(sims[i, i] == 1.0)) # Similarity of a document with itself is 0.0.
+            self.assertTrue(numpy.all(sims[i, i] == 1.0))  # Similarity of a document with itself is 0.0.
 
         # test the same thing but with num_best
         index.num_best = 3
