@@ -7,6 +7,12 @@ on:
     branches: [ develop ]
   schedule:
     - cron: '0 0 * * sun,wed'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag for manually running CI first code check workflow
+        required: False
+        default: ''
 
 jobs:
 
