@@ -6,16 +6,36 @@ import sys
 
 
 def main():
+    print("Installing wheel for current platform...")
     subdir = sys.argv[1]
     vi = sys.version_info
 
-    if platform.system() in ('Linux', 'Darwin'):
-        arch = 'x86_64'
+    system = platform.system()
+    machine = platform.machine().lower()
+
+    print(machine)
+
+    if system == 'Darwin':
+        if machine == 'arm64':
+            arch = 'arm64'
+        else:
+            arch = 'x86_64'
+    elif system == 'Linux':
+        if machine in ('x86_64', 'amd64'):
+            arch = 'x86_64'
+        elif machine in ('aarch64', 'arm64'):
+            arch = 'arm64'
+        else:
+            arch = machine
     else:
         arch = 'amd64'
 
     want = f'-cp{vi.major}{vi.minor}-'
     suffix = f'_{arch}.whl'
+
+    print("---")
+    print(want)
+    print(suffix)
 
     files = sorted(os.listdir(subdir))
     for f in files:
