@@ -6,11 +6,14 @@ import sys
 
 
 def main():
+    print("Installing wheel for current platform...")
     subdir = sys.argv[1]
     vi = sys.version_info
 
     system = platform.system()
     machine = platform.machine().lower()
+
+    print(machine)
 
     if system == 'Darwin':
         if machine == 'arm64':
@@ -29,6 +32,10 @@ def main():
 
     want = f'-cp{vi.major}{vi.minor}-'
     suffix = f'_{arch}.whl'
+
+    print("---")
+    print(want)
+    print(suffix)
 
     files = sorted(os.listdir(subdir))
     for f in files:
