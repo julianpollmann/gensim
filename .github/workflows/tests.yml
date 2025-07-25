@@ -33,7 +33,7 @@ jobs:
           python-version: "3.12"
 
       - name: Update pip
-        run: python -m pip install -U pip setuptools
+        run: python -m pip install -U pip setuptools nmslib
 
       - name: Install apt packages for LaTeX rendering
         run: |
