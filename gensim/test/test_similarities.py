@@ -9,7 +9,6 @@ Automated tests for similarity algorithms (the similarities package).
 """
 
 import logging
-import sys
 import unittest
 import math
 import os
