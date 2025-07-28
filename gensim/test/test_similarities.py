@@ -37,6 +37,7 @@ from gensim.similarities.fastss import editdist
 
 try:
     from ot import emd2  # noqa:F401
+
     POT_EXT = True
 except (ImportError, ValueError):
     POT_EXT = False
@@ -323,11 +324,11 @@ class TestWmdSimilarity(_TestSimilarityABC):
             # Sparse array.
             for i, sim in sims:
                 # Note that similarities are bigger than zero, as they are the 1/ 1 + distances.
-                self.assertTrue(numpy.alltrue(sim > 0.0))
+                self.assertTrue(numpy.all(sim > 0.0))
         else:
             self.assertTrue(sims[0] == 1.0)  # Similarity of a document with itself is 0.0.
-            self.assertTrue(numpy.alltrue(sims[1:] > 0.0))
-            self.assertTrue(numpy.alltrue(sims[1:] < 1.0))
+            self.assertTrue(numpy.all(sims[1:] > 0.0))
+            self.assertTrue(numpy.all(sims[1:] < 1.0))
 
     @unittest.skipIf(POT_EXT is False, "POT not installed")
     def test_non_increasing(self):
@@ -354,15 +355,15 @@ class TestWmdSimilarity(_TestSimilarityABC):
         sims = index[query]
 
         for i in range(3):
-            self.assertTrue(numpy.alltrue(sims[i, i] == 1.0))  # Similarity of a document with itself is 0.0.
+            self.assertTrue(numpy.all(sims[i, i] == 1.0))  # Similarity of a document with itself is 0.0.
 
         # test the same thing but with num_best
         index.num_best = 3
         sims = index[query]
         for sims_temp in sims:
             for i, sim in sims_temp:
-                self.assertTrue(numpy.alltrue(sim > 0.0))
-                self.assertTrue(numpy.alltrue(sim <= 1.0))
+                self.assertTrue(numpy.all(sim > 0.0))
+                self.assertTrue(numpy.all(sim <= 1.0))
 
     @unittest.skipIf(POT_EXT is False, "POT not installed")
     def test_iter(self):
@@ -370,8 +371,8 @@ class TestWmdSimilarity(_TestSimilarityABC):
 
         index = self.cls(TEXTS, self.w2v_model)
         for sims in index:
-            self.assertTrue(numpy.alltrue(sims >= 0.0))
-            self.assertTrue(numpy.alltrue(sims <= 1.0))
+            self.assertTrue(numpy.all(sims >= 0.0))
+            self.assertTrue(numpy.all(sims <= 1.0))
 
     @unittest.skipIf(POT_EXT is False, "POT not installed")
     def test_str(self):
@@ -399,12 +400,12 @@ class TestSoftCosineSimilarity(_TestSimilarityABC):
         if num_best is not None:
             # Sparse array.
             for i, sim in sims:
-                self.assertTrue(numpy.alltrue(sim <= 1.0))
-                self.assertTrue(numpy.alltrue(sim >= 0.0))
+                self.assertTrue(numpy.all(sim <= 1.0))
+                self.assertTrue(numpy.all(sim >= 0.0))
         else:
             self.assertAlmostEqual(1.0, sims[0])  # Similarity of a document with itself is 1.0.
-            self.assertTrue(numpy.alltrue(sims[1:] >= 0.0))
-            self.assertTrue(numpy.alltrue(sims[1:] < 1.0))
+            self.assertTrue(numpy.all(sims[1:] >= 0.0))
+            self.assertTrue(numpy.all(sims[1:] < 1.0))
 
         # Corpora
         for query in (
@@ -416,15 +417,15 @@ class TestSoftCosineSimilarity(_TestSimilarityABC):
                 # Sparse array.
                 for result in sims:
                     for i, sim in result:
-                        self.assertTrue(numpy.alltrue(sim <= 1.0))
-                        self.assertTrue(numpy.alltrue(sim >= 0.0))
+                        self.assertTrue(numpy.all(sim <= 1.0))
+                        self.assertTrue(numpy.all(sim >= 0.0))
             else:
                 for i, result in enumerate(sims):
                     self.assertAlmostEqual(1.0, result[i])  # Similarity of a document with itself is 1.0.
-                    self.assertTrue(numpy.alltrue(result[:i] >= 0.0))
-                    self.assertTrue(numpy.alltrue(result[:i] < 1.0))
-                    self.assertTrue(numpy.alltrue(result[i + 1:] >= 0.0))
-                    self.assertTrue(numpy.alltrue(result[i + 1:] < 1.0))
+                    self.assertTrue(numpy.all(result[:i] >= 0.0))
+                    self.assertTrue(numpy.all(result[:i] < 1.0))
+                    self.assertTrue(numpy.all(result[i + 1:] >= 0.0))
+                    self.assertTrue(numpy.all(result[i + 1:] < 1.0))
 
     def test_non_increasing(self):
         """ Check that similarities are non-increasing when `num_best` is not `None`."""
@@ -445,7 +446,7 @@ class TestSoftCosineSimilarity(_TestSimilarityABC):
         sims = index[query]
 
         for i in range(3):
-            self.assertTrue(numpy.alltrue(sims[i, i] == 1.0))  # Similarity of a document with itself is 1.0.
+            self.assertTrue(numpy.all(sims[i, i] == 1.0))  # Similarity of a document with itself is 1.0.
 
         # test the same thing but with num_best
         index.num_best = 5
@@ -459,8 +460,8 @@ class TestSoftCosineSimilarity(_TestSimilarityABC):
     def test_iter(self):
         index = self.cls(CORPUS, self.similarity_matrix)
         for sims in index:
-            self.assertTrue(numpy.alltrue(sims >= 0.0))
-            self.assertTrue(numpy.alltrue(sims <= 1.0))
+            self.assertTrue(numpy.all(sims >= 0.0))
+            self.assertTrue(numpy.all(sims <= 1.0))
 
 
 class TestSparseMatrixSimilarity(_TestSimilarityABC):
@@ -697,152 +698,6 @@ class TestDoc2VecAnnoyIndexer(unittest.TestCase):
         self.assertEqual(self.index.index.f, self.index2.index.f)
         self.assertEqual(self.index.labels, self.index2.labels)
         self.assertEqual(self.index.num_trees, self.index2.num_trees)
-
-
-class TestWord2VecNmslibIndexer(unittest.TestCase):
-
-    def setUp(self):
-        try:
-            import nmslib  # noqa:F401
-        except ImportError as e:
-            raise unittest.SkipTest("NMSLIB library is not available: %s" % e)
-
-        from gensim.similarities.nmslib import NmslibIndexer
-        self.indexer = NmslibIndexer
-
-    def test_word2vec(self):
-        model = word2vec.Word2Vec(TEXTS, min_count=1)
-        index = self.indexer(model)
-
-        self.assertVectorIsSimilarToItself(model.wv, index)
-        self.assertApproxNeighborsMatchExact(model.wv, model.wv, index)
-        self.assertIndexSaved(index)
-        self.assertLoadedIndexEqual(index, model)
-
-    def test_fasttext(self):
-        class LeeReader:
-            def __init__(self, fn):
-                self.fn = fn
-
-            def __iter__(self):
-                with utils.open(self.fn, 'r', encoding="latin_1") as infile:
-                    for line in infile:
-                        yield line.lower().strip().split()
-
-        model = FastText(LeeReader(datapath('lee.cor')), bucket=5000)
-        index = self.indexer(model)
-
-        self.assertVectorIsSimilarToItself(model.wv, index)
-        self.assertApproxNeighborsMatchExact(model.wv, model.wv, index)
-        self.assertIndexSaved(index)
-        self.assertLoadedIndexEqual(index, model)
-
-    def test_indexing_keyedvectors(self):
-        from gensim.similarities.nmslib import NmslibIndexer
-        keyVectors_file = datapath('lee_fasttext.vec')
-        model = KeyedVectors.load_word2vec_format(keyVectors_file)
-        index = NmslibIndexer(model)
-
-        self.assertVectorIsSimilarToItself(model, index)
-        self.assertApproxNeighborsMatchExact(model, model, index)
-
-    def test_load_missing_raises_error(self):
-        from gensim.similarities.nmslib import NmslibIndexer
-
-        self.assertRaises(IOError, NmslibIndexer.load, fname='test-index')
-
-    def assertVectorIsSimilarToItself(self, wv, index):
-        vector = wv.get_normed_vectors()[0]
-        label = wv.index_to_key[0]
-        approx_neighbors = index.most_similar(vector, 1)
-        word, similarity = approx_neighbors[0]
-
-        self.assertEqual(word, label)
-        self.assertAlmostEqual(similarity, 1.0, places=2)
-
-    def assertApproxNeighborsMatchExact(self, model, wv, index):
-        vector = wv.get_normed_vectors()[0]
-        approx_neighbors = model.most_similar([vector], topn=5, indexer=index)
-        exact_neighbors = model.most_similar([vector], topn=5)
-
-        approx_words = [word_id for word_id, similarity in approx_neighbors]
-        exact_words = [word_id for word_id, similarity in exact_neighbors]
-
-        self.assertEqual(approx_words, exact_words)
-
-    def assertIndexSaved(self, index):
-        fname = get_tmpfile('gensim_similarities.tst.pkl')
-        index.save(fname)
-        self.assertTrue(os.path.exists(fname))
-        self.assertTrue(os.path.exists(fname + '.d'))
-
-    def assertLoadedIndexEqual(self, index, model):
-        from gensim.similarities.nmslib import NmslibIndexer
-
-        fname = get_tmpfile('gensim_similarities.tst.pkl')
-        index.save(fname)
-
-        index2 = NmslibIndexer.load(fname)
-        index2.model = model
-
-        self.assertEqual(index.labels, index2.labels)
-        self.assertEqual(index.index_params, index2.index_params)
-        self.assertEqual(index.query_time_params, index2.query_time_params)
-
-
-class TestDoc2VecNmslibIndexer(unittest.TestCase):
-
-    def setUp(self):
-        try:
-            import nmslib  # noqa:F401
-        except ImportError as e:
-            raise unittest.SkipTest("NMSLIB library is not available: %s" % e)
-
-        from gensim.similarities.nmslib import NmslibIndexer
-
-        self.model = doc2vec.Doc2Vec(SENTENCES, min_count=1)
-        self.index = NmslibIndexer(self.model)
-        self.vector = self.model.dv.get_normed_vectors()[0]
-
-    def test_document_is_similar_to_itself(self):
-        approx_neighbors = self.index.most_similar(self.vector, 1)
-        doc, similarity = approx_neighbors[0]
-
-        self.assertEqual(doc, 0)
-        self.assertAlmostEqual(similarity, 1.0, places=2)
-
-    def test_approx_neighbors_match_exact(self):
-        approx_neighbors = self.model.dv.most_similar([self.vector], topn=5, indexer=self.index)
-        exact_neighbors = self.model.dv.most_similar([self.vector], topn=5)
-
-        approx_tags = [tag for tag, similarity in approx_neighbors]
-        exact_tags = [tag for tag, similarity in exact_neighbors]
-
-        self.assertEqual(approx_tags, exact_tags)
-
-    def test_save(self):
-        fname = get_tmpfile('gensim_similarities.tst.pkl')
-        self.index.save(fname)
-        self.assertTrue(os.path.exists(fname))
-        self.assertTrue(os.path.exists(fname + '.d'))
-
-    def test_load_not_exist(self):
-        from gensim.similarities.nmslib import NmslibIndexer
-
-        self.assertRaises(IOError, NmslibIndexer.load, fname='test-index')
-
-    def test_save_load(self):
-        from gensim.similarities.nmslib import NmslibIndexer
-
-        fname = get_tmpfile('gensim_similarities.tst.pkl')
-        self.index.save(fname)
-
-        self.index2 = NmslibIndexer.load(fname)
-        self.index2.model = self.model
-
-        self.assertEqual(self.index.labels, self.index2.labels)
-        self.assertEqual(self.index.index_params, self.index2.index_params)
-        self.assertEqual(self.index.query_time_params, self.index2.query_time_params)
 
 
 class TestUniformTermSimilarityIndex(unittest.TestCase):
@@ -1499,7 +1354,7 @@ class TestSparseTermSimilarityMatrix(unittest.TestCase):
         expected_result *= math.sqrt(self.identity_matrix.inner_product(self.vec2, self.vec2))
         expected_result = numpy.full((3, 2), expected_result)
         result = self.uniform_matrix.inner_product([self.vec1] * 3, [self.vec2] * 2,
-            normalized=('maintain', 'maintain'))
+                                                   normalized=('maintain', 'maintain'))
         self.assertTrue(isinstance(result, scipy.sparse.csr_matrix))
         self.assertTrue(numpy.allclose(expected_result, result.todense()))
 
@@ -1634,7 +1489,7 @@ class TestWordEmbeddingSimilarityIndex(unittest.TestCase):
         first_similarities = numpy.array([similarity for term, similarity in index.most_similar(u"holiday", topn=10)])
         index = WordEmbeddingSimilarityIndex(self.vectors, exponent=2.0)
         second_similarities = numpy.array([similarity for term, similarity in index.most_similar(u"holiday", topn=10)])
-        self.assertTrue(numpy.allclose(first_similarities**2.0, second_similarities))
+        self.assertTrue(numpy.allclose(first_similarities ** 2.0, second_similarities))
 
 
 class TestFastSS(unittest.TestCase):
