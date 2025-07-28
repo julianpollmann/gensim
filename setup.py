@@ -59,6 +59,7 @@ def make_c_ext(use_cython=False):
             sources=[source],
             language='c',
             extra_compile_args=extra_args,
+            define_macros=[('NPY_NO_DEPRECATED_API', 'NPY_1_7_API_VERSION')],
         )
 
 
@@ -80,6 +81,7 @@ def make_cpp_ext(use_cython=False):
             language='c++',
             extra_compile_args=extra_args,
             extra_link_args=extra_args,
+            define_macros=[('NPY_NO_DEPRECATED_API', 'NPY_1_7_API_VERSION')],
         )
 
 
@@ -120,8 +122,17 @@ class CustomBuildExt(build_ext):
 
         if need_cython():
             import Cython.Build
-            Cython.Build.cythonize(list(make_c_ext(use_cython=True)), language_level=3)
-            Cython.Build.cythonize(list(make_cpp_ext(use_cython=True)), language_level=3)
+            exts = list(make_c_ext(use_cython=True)) + list(make_cpp_ext(use_cython=True))
+            Cython.Build.cythonize(
+                exts,
+                language_level=3,
+                nthreads=os.cpu_count(),
+                cache=True,
+            )
+
+
+            #Cython.Build.cythonize(list(make_c_ext(use_cython=True)), language_level=3)
+            #Cython.Build.cythonize(list(make_cpp_ext(use_cython=True)), language_level=3)
 
 
 class CleanExt(distutils.cmd.Command):
