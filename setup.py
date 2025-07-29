@@ -123,7 +123,7 @@ class CustomBuildExt(build_ext):
         if need_cython():
             import Cython.Build
             exts = list(make_c_ext(use_cython=True)) + list(make_cpp_ext(use_cython=True))
-            Cython.Build.cythonize(
+            self.extensions = Cython.Build.cythonize(
                 exts,
                 language_level=3,
                 nthreads=os.cpu_count(),
