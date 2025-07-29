@@ -16,6 +16,7 @@ import platform
 import shutil
 import sys
 from collections import OrderedDict
+from functools import cache
 
 from setuptools import Extension, find_packages, setup, distutils
 from setuptools.command.build_ext import build_ext
@@ -131,8 +132,8 @@ class CustomBuildExt(build_ext):
             import Cython.Build
 
             self.distribution.ext_modules = list(itertools.chain(
-                Cython.Build.cythonize(list(make_c_ext(use_cython=True)), language_level=3),
-                Cython.Build.cythonize(list(make_cpp_ext(use_cython=True)), language_level=3)
+                Cython.Build.cythonize(list(make_c_ext(use_cython=True)), language_level=3, cache=True),
+                Cython.Build.cythonize(list(make_cpp_ext(use_cython=True)), language_level=3, cache=True)
             ))
 
             #Cython.Build.cythonize(list(make_c_ext(use_cython=True)), language_level=3)

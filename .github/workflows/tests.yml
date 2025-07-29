@@ -119,6 +119,9 @@ jobs:
 
       - run: pip freeze
 
+      - name: Compile Cython extensions
+        run: python setup.py build_ext --inplace
+
       - name: Show numpy configuration
         run: python -c 'import numpy;numpy.show_config()'
 
