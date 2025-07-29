@@ -87,7 +87,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - name: Update pip
-        run: python -m pip install -U pip
+        run: python -m pip install -U pip setuptools
 
       #
       # Work-around mysterious build problem
