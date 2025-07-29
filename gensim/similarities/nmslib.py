@@ -78,6 +78,8 @@ nearest neighbors search than Annoy.
 # Avoid import collisions on py2: this module has the same name as the actual NMSLIB library.
 from __future__ import absolute_import
 import pickle as _pickle
+import sys
+import numpy as np
 
 from smart_open import open
 try:
@@ -115,6 +117,8 @@ class NmslibIndexer():
             If not specified, defaults to `{'efSearch': 100}`.
 
         """
+        check_nmslib_compatibility()
+
         if index_params is None:
             index_params = {'M': 100, 'indexThreadQty': 1, 'efConstruction': 100, 'post': 0}
         if query_time_params is None:
@@ -231,3 +235,10 @@ class NmslibIndexer():
         # NMSLIB returns cosine distance (not similarity), which is simply `dist = 1 - cossim`.
         # So, convert back to similarities here.
         return [(self.labels[id_], 1.0 - distance) for id_, distance in zip(ids, distances)]
+
+
+def check_nmslib_compatibility():
+    if sys.version_info >= (3, 10):
+        raise RuntimeError("nmslib requires Python < 3.10")
+    if tuple(map(int, np.__version__.split('.')[:2])) >= (2, 0):
+        raise RuntimeError("nmslib requires NumPy < 2.0")
