@@ -54,11 +54,14 @@ def make_c_ext(use_cython=False):
             source = source.replace('.c', '.pyx')
         extra_args = []
 #        extra_args.extend(['-g', '-O0'])  # uncomment if optimization limiting crash info
+        macros = [("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")] if sys.version_info >= (3, 13) else []
         yield Extension(
             module,
             sources=[source],
             language='c',
             extra_compile_args=extra_args,
+            #define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
+            define_macros=macros,
         )
 
 
@@ -70,16 +73,22 @@ def make_cpp_ext(use_cython=False):
         extra_args.append('-std=c++11')
     elif system == 'Darwin':
         extra_args.extend(['-stdlib=libc++', '-std=c++11'])
+
+    if sys.version_info >= (3, 13):
+        extra_args.extend(["-DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION"])
 #    extra_args.extend(['-g', '-O0'])  # uncomment if optimization limiting crash info
     for module, source in cpp_extensions.items():
         if use_cython:
             source = source.replace('.cpp', '.pyx')
+        macros = [("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")] if sys.version_info >= (3, 13) else []
         yield Extension(
             module,
             sources=[source],
             language='c++',
             extra_compile_args=extra_args,
             extra_link_args=extra_args,
+            #define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")]
+            define_macros=macros,
         )
 
 
@@ -120,8 +129,14 @@ class CustomBuildExt(build_ext):
 
         if need_cython():
             import Cython.Build
-            Cython.Build.cythonize(list(make_c_ext(use_cython=True)), language_level=3)
-            Cython.Build.cythonize(list(make_cpp_ext(use_cython=True)), language_level=3)
+
+            self.distribution.ext_modules = list(itertools.chain(
+                Cython.Build.cythonize(list(make_c_ext(use_cython=True)), language_level=3),
+                Cython.Build.cythonize(list(make_cpp_ext(use_cython=True)), language_level=3)
+            ))
+
+            #Cython.Build.cythonize(list(make_c_ext(use_cython=True)), language_level=3)
+            #Cython.Build.cythonize(list(make_cpp_ext(use_cython=True)), language_level=3)
 
 
 class CleanExt(distutils.cmd.Command):
