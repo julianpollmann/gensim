@@ -122,13 +122,13 @@ class CustomBuildExt(build_ext):
 
         if need_cython():
             import Cython.Build
-            os.environ["CYTHON_USE_OLD_PARSER"] = "1"
             exts = list(make_c_ext(use_cython=True)) + list(make_cpp_ext(use_cython=True))
             Cython.Build.cythonize(
                 exts,
                 language_level=3,
                 nthreads=os.cpu_count(),
                 cache=True,
+                compiler_directives={"binding": False},
             )
 
 
