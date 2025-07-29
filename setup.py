@@ -22,19 +22,20 @@ from setuptools import Extension, find_packages, setup, distutils
 from setuptools.command.build_ext import build_ext
 
 c_extensions = OrderedDict([
-    ('gensim.models.word2vec_inner', 'gensim/models/word2vec_inner.c'),
-    ('gensim.corpora._mmreader', 'gensim/corpora/_mmreader.c'),
-    ('gensim.models.fasttext_inner', 'gensim/models/fasttext_inner.c'),
-    ('gensim._matutils', 'gensim/_matutils.c'),
-    ('gensim.models.nmf_pgd', 'gensim/models/nmf_pgd.c'),
-    ('gensim.similarities.fastss', 'gensim/similarities/fastss.c'),
+    ("gensim.models.word2vec_inner", "gensim/models/word2vec_inner.c"),
+    ("gensim.corpora._mmreader", "gensim/corpora/_mmreader.c"),
+    ("gensim.models.fasttext_inner", "gensim/models/fasttext_inner.c"),
+    ("gensim._matutils", "gensim/_matutils.c"),
+    ("gensim.models.nmf_pgd", "gensim/models/nmf_pgd.c"),
+    ("gensim.similarities.fastss", "gensim/similarities/fastss.c"),
+    ("gensim._python313_compat", "gensim/_python313_compat.c"),
 ])
 
 cpp_extensions = OrderedDict([
-    ('gensim.models.doc2vec_inner', 'gensim/models/doc2vec_inner.cpp'),
-    ('gensim.models.word2vec_corpusfile', 'gensim/models/word2vec_corpusfile.cpp'),
-    ('gensim.models.fasttext_corpusfile', 'gensim/models/fasttext_corpusfile.cpp'),
-    ('gensim.models.doc2vec_corpusfile', 'gensim/models/doc2vec_corpusfile.cpp'),
+    ("gensim.models.doc2vec_inner", "gensim/models/doc2vec_inner.cpp"),
+    ("gensim.models.word2vec_corpusfile", "gensim/models/word2vec_corpusfile.cpp"),
+    ("gensim.models.fasttext_corpusfile", "gensim/models/fasttext_corpusfile.cpp"),
+    ("gensim.models.doc2vec_corpusfile", "gensim/models/doc2vec_corpusfile.cpp"),
 ])
 
 
@@ -56,6 +57,9 @@ def make_c_ext(use_cython=False):
         extra_args = []
         extra_args.extend(['-O3'])
         #extra_args.extend(['-g', '-O0'])  # uncomment if optimization limiting crash info
+        # Add Python 3.13 compatibility flags
+        if sys.version_info >= (3, 13):
+            extra_args.extend(["-DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION"])
         macros = [("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")] if sys.version_info >= (3, 13) else []
         yield Extension(
             module,
@@ -71,10 +75,10 @@ def make_cpp_ext(use_cython=False):
     extra_args = []
     system = platform.system()
 
-    if system == 'Linux':
-        extra_args.append('-std=c++11')
-    elif system == 'Darwin':
-        extra_args.extend(['-stdlib=libc++', '-std=c++11'])
+    if system == "Linux":
+        extra_args.append("-std=c++11")
+    elif system == "Darwin":
+        extra_args.extend(["-stdlib=libc++", "-std=c++11"])
 
     if sys.version_info >= (3, 13):
         extra_args.extend(["-DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION"])
@@ -102,8 +106,9 @@ def make_cpp_ext(use_cython=False):
 # 1. Cython may not be available at this stage
 # 2. The actual translation from Cython to C/C++ happens inside CustomBuildExt
 #
-ext_modules = list(itertools.chain(make_c_ext(use_cython=False), make_cpp_ext(use_cython=False)))
-
+ext_modules = list(
+    itertools.chain(make_c_ext(use_cython=False), make_cpp_ext(use_cython=False))
+)
 
 class CustomBuildExt(build_ext):
     """Custom build_ext action with bootstrapping.
