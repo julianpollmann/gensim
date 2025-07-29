@@ -58,8 +58,6 @@ def make_c_ext(use_cython=False):
         extra_args.extend(['-O3'])
         #extra_args.extend(['-g', '-O0'])  # uncomment if optimization limiting crash info
         # Add Python 3.13 compatibility flags
-        if sys.version_info >= (3, 13):
-            extra_args.extend(["-DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION"])
         macros = [("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")] if sys.version_info >= (3, 13) else []
         yield Extension(
             module,
@@ -80,8 +78,7 @@ def make_cpp_ext(use_cython=False):
     elif system == "Darwin":
         extra_args.extend(["-stdlib=libc++", "-std=c++11"])
 
-    if sys.version_info >= (3, 13):
-        extra_args.extend(["-DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION"])
+
     # extra_args.extend(['-g', '-O0'])  # uncomment if optimization limiting crash info
     extra_args.extend(['-O3'])
 
