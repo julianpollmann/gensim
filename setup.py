@@ -128,7 +128,15 @@ class CustomBuildExt(build_ext):
                 language_level=3,
                 nthreads=os.cpu_count(),
                 cache=True,
-                compiler_directives={"binding": False},
+                compiler_directives={
+                    "binding": False,
+                    "boundscheck": False,
+                    "wraparound": False,
+                    "nonecheck": False,
+                    "initializedcheck": False,
+                    "cdivision": True,
+                    "infer_types": True,
+                },
             )
 
 
