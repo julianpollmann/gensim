@@ -111,20 +111,19 @@ jobs:
 
       - name: Install gensim and its dependencies
         if: matrix.os != 'windows'
-        run: |
-          pip install dist/gensim*.whl
-          pip install .[test]
+        run: pip install .[test]
 
       - name: Install gensim and its dependencies (Windows)
         if: matrix.os == 'windows'
-        run: |
-          pip install dist/gensim*.whl
-          pip install .[test-win]
+        run: pip install .[test-win]
 
       - run: pip freeze
 
       - name: Compile Cython extensions
         run: python setup.py build_ext --inplace
+
+      - name: Install gensim wheel
+        run: pip install dist/gensim*.whl
 
       - name: Show numpy configuration
         run: python -c 'import numpy;numpy.show_config()'
