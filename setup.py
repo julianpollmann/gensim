@@ -16,24 +16,26 @@ import platform
 import shutil
 import sys
 from collections import OrderedDict
+from functools import cache
 
 from setuptools import Extension, find_packages, setup, distutils
 from setuptools.command.build_ext import build_ext
 
 c_extensions = OrderedDict([
-    ('gensim.models.word2vec_inner', 'gensim/models/word2vec_inner.c'),
-    ('gensim.corpora._mmreader', 'gensim/corpora/_mmreader.c'),
-    ('gensim.models.fasttext_inner', 'gensim/models/fasttext_inner.c'),
-    ('gensim._matutils', 'gensim/_matutils.c'),
-    ('gensim.models.nmf_pgd', 'gensim/models/nmf_pgd.c'),
-    ('gensim.similarities.fastss', 'gensim/similarities/fastss.c'),
+    ("gensim.models.word2vec_inner", "gensim/models/word2vec_inner.c"),
+    ("gensim.corpora._mmreader", "gensim/corpora/_mmreader.c"),
+    ("gensim.models.fasttext_inner", "gensim/models/fasttext_inner.c"),
+    ("gensim._matutils", "gensim/_matutils.c"),
+    ("gensim.models.nmf_pgd", "gensim/models/nmf_pgd.c"),
+    ("gensim.similarities.fastss", "gensim/similarities/fastss.c"),
+    ("gensim._python313_compat", "gensim/_python313_compat.c"),
 ])
 
 cpp_extensions = OrderedDict([
-    ('gensim.models.doc2vec_inner', 'gensim/models/doc2vec_inner.cpp'),
-    ('gensim.models.word2vec_corpusfile', 'gensim/models/word2vec_corpusfile.cpp'),
-    ('gensim.models.fasttext_corpusfile', 'gensim/models/fasttext_corpusfile.cpp'),
-    ('gensim.models.doc2vec_corpusfile', 'gensim/models/doc2vec_corpusfile.cpp'),
+    ("gensim.models.doc2vec_inner", "gensim/models/doc2vec_inner.cpp"),
+    ("gensim.models.word2vec_corpusfile", "gensim/models/word2vec_corpusfile.cpp"),
+    ("gensim.models.fasttext_corpusfile", "gensim/models/fasttext_corpusfile.cpp"),
+    ("gensim.models.doc2vec_corpusfile", "gensim/models/doc2vec_corpusfile.cpp"),
 ])
 
 
@@ -53,12 +55,17 @@ def make_c_ext(use_cython=False):
         if use_cython:
             source = source.replace('.c', '.pyx')
         extra_args = []
-#        extra_args.extend(['-g', '-O0'])  # uncomment if optimization limiting crash info
+        extra_args.extend(['-O3'])
+        #extra_args.extend(['-g', '-O0'])  # uncomment if optimization limiting crash info
+        # Add Python 3.13 compatibility flags
+        macros = [("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")] if sys.version_info >= (3, 13) else []
         yield Extension(
             module,
             sources=[source],
             language='c',
             extra_compile_args=extra_args,
+            #define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
+            define_macros=macros,
         )
 
 
@@ -66,20 +73,27 @@ def make_cpp_ext(use_cython=False):
     extra_args = []
     system = platform.system()
 
-    if system == 'Linux':
-        extra_args.append('-std=c++11')
-    elif system == 'Darwin':
-        extra_args.extend(['-stdlib=libc++', '-std=c++11'])
-#    extra_args.extend(['-g', '-O0'])  # uncomment if optimization limiting crash info
+    if system == "Linux":
+        extra_args.append("-std=c++11")
+    elif system == "Darwin":
+        extra_args.extend(["-stdlib=libc++", "-std=c++11"])
+
+
+    # extra_args.extend(['-g', '-O0'])  # uncomment if optimization limiting crash info
+    extra_args.extend(['-O3'])
+
     for module, source in cpp_extensions.items():
         if use_cython:
             source = source.replace('.cpp', '.pyx')
+        macros = [("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")] if sys.version_info >= (3, 13) else []
         yield Extension(
             module,
             sources=[source],
             language='c++',
             extra_compile_args=extra_args,
             extra_link_args=extra_args,
+            #define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")]
+            define_macros=macros,
         )
 
 
@@ -89,8 +103,9 @@ def make_cpp_ext(use_cython=False):
 # 1. Cython may not be available at this stage
 # 2. The actual translation from Cython to C/C++ happens inside CustomBuildExt
 #
-ext_modules = list(itertools.chain(make_c_ext(use_cython=False), make_cpp_ext(use_cython=False)))
-
+ext_modules = list(
+    itertools.chain(make_c_ext(use_cython=False), make_cpp_ext(use_cython=False))
+)
 
 class CustomBuildExt(build_ext):
     """Custom build_ext action with bootstrapping.
@@ -120,8 +135,14 @@ class CustomBuildExt(build_ext):
 
         if need_cython():
             import Cython.Build
-            Cython.Build.cythonize(list(make_c_ext(use_cython=True)), language_level=3)
-            Cython.Build.cythonize(list(make_cpp_ext(use_cython=True)), language_level=3)
+
+            self.distribution.ext_modules = list(itertools.chain(
+                Cython.Build.cythonize(list(make_c_ext(use_cython=True)), language_level=3, cache=True),
+                Cython.Build.cythonize(list(make_cpp_ext(use_cython=True)), language_level=3, cache=True)
+            ))
+
+            #Cython.Build.cythonize(list(make_c_ext(use_cython=True)), language_level=3)
+            #Cython.Build.cythonize(list(make_cpp_ext(use_cython=True)), language_level=3)
 
 
 class CleanExt(distutils.cmd.Command):
@@ -324,23 +345,17 @@ docs_testenv = core_testenv + distributed_env + visdom_req + [
     'pandas',
 ]
 
-#
-# see https://github.com/piskvorky/gensim/pull/3535
-#
-NUMPY_STR = 'numpy >= 1.18.5, < 2.0'
+NUMPY_STR = 'numpy >= 1.18.5'
 
 install_requires = [
     NUMPY_STR,
-    #
-    # scipy 1.14.0 and onwards removes deprecated sparsetools submodule
-    #
-    'scipy >= 1.7.0, <1.14.0',
+    'scipy >= 1.7.0',
     'smart_open >= 1.8.1',
 ]
 
 setup(
     name='gensim',
-    version='4.3.3',
+    version='4.4.0a0.dev0',
     description='Python framework for fast Vector Space Modelling',
     long_description=LONG_DESCRIPTION,
 
@@ -373,7 +388,6 @@ setup(
         'Environment :: Console',
         'Intended Audience :: Science/Research',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
@@ -385,7 +399,7 @@ setup(
     ],
 
     test_suite="gensim.test",
-    python_requires='>=3.8',
+    python_requires='>=3.9',
     install_requires=install_requires,
     tests_require=linux_testenv,
     extras_require={
