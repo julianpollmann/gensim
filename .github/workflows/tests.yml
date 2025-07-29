@@ -111,11 +111,15 @@ jobs:
 
       - name: Install gensim and its dependencies
         if: matrix.os != 'windows'
-        run: pip install .[test]
+        run: |
+          pip install dist/gensim*.whl
+          pip install .[test]
 
       - name: Install gensim and its dependencies (Windows)
         if: matrix.os == 'windows'
-        run: pip install .[test-win]
+        run: |
+          pip install dist/gensim*.whl
+          pip install .[test-win]
 
       - run: pip freeze
 
