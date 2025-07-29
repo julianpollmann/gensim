@@ -128,6 +128,7 @@ class CustomBuildExt(build_ext):
                 language_level=3,
                 nthreads=os.cpu_count(),
                 cache=True,
+                CYTHON_USE_OLD_PARSER=1
             )
 
 
