@@ -121,7 +121,7 @@ class CustomBuildExt(build_ext):
         if need_cython():
             import Cython.Build
             Cython.Build.cythonize(list(make_c_ext(use_cython=True)), language_level=3)
-            #Cython.Build.cythonize(list(make_cpp_ext(use_cython=True)), language_level=3)
+            Cython.Build.cythonize(list(make_cpp_ext(use_cython=True)), language_level=3)
 
 
 class CleanExt(distutils.cmd.Command):
