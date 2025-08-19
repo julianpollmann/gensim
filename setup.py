@@ -22,11 +22,11 @@ from setuptools.command.build_ext import build_ext
 
 c_extensions = OrderedDict([
     ('gensim.models.word2vec_inner', 'gensim/models/word2vec_inner.c'),
-    # ('gensim.corpora._mmreader', 'gensim/corpora/_mmreader.c'),
-    # ('gensim.models.fasttext_inner', 'gensim/models/fasttext_inner.c'),
-    # ('gensim._matutils', 'gensim/_matutils.c'),
-    # ('gensim.models.nmf_pgd', 'gensim/models/nmf_pgd.c'),
-    # ('gensim.similarities.fastss', 'gensim/similarities/fastss.c'),
+    ('gensim.corpora._mmreader', 'gensim/corpora/_mmreader.c'),
+    ('gensim.models.fasttext_inner', 'gensim/models/fasttext_inner.c'),
+    ('gensim._matutils', 'gensim/_matutils.c'),
+    ('gensim.models.nmf_pgd', 'gensim/models/nmf_pgd.c'),
+    ('gensim.similarities.fastss', 'gensim/similarities/fastss.c'),
 ])
 
 cpp_extensions = OrderedDict([
