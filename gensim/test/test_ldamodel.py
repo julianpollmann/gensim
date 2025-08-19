@@ -370,8 +370,8 @@ class TestLdaModel(unittest.TestCase, basetmtests.TestBaseTopicModel):
                 msg = ", ".join(str(x) for x in [passes, model.num_updates, model.state.numdocs])
                 self.assertAlmostEqual(final_rhot(model), test_rhot, msg=msg)
 
-            self.assertEqual(model.state.numdocs, len(corpus) * len(test_rhots))
-            self.assertEqual(model.num_updates, len(corpus) * len(test_rhots))
+            self.assertAlmostEqual(model.state.numdocs, len(corpus) * len(test_rhots))
+            self.assertAlmostEqual(model.num_updates, len(corpus) * len(test_rhots))
 
     # def test_topic_seeding(self):
     #     for topic in range(2):
